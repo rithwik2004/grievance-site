@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grievance Corner 💖</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive;
+      background: linear-gradient(to right, #ffc0cb, #fff0f5);
+      text-align: center;
+      padding: 50px;
+      position: relative;
+    }
+    .heart {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: red;
+      transform: rotate(45deg);
+      animation: float 5s infinite;
+    }
+    .heart::before,
+    .heart::after {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: red;
+      border-radius: 50%;
+    }
+    .heart::before {
+      top: -10px;
+      left: 0;
+    }
+    .heart::after {
+      top: 0;
+      left: -10px;
+    }
+    @keyframes float {
+      0% { transform: translateY(0) rotate(45deg); opacity: 1; }
+      100% { transform: translateY(-600px) rotate(45deg); opacity: 0; }
+    }
+    #login, #complaint-form {
+      margin: 20px auto;
+      max-width: 400px;
+    }
+    textarea, input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    button {
+      background-color: #ff69b4;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 10px;
+      font-size: 16px;
+      color: white;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to Your Grievance Corner 💌</h1>
+  <div id="login">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username"/><br/>
+    <input type="password" id="password" placeholder="Password"/><br/>
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div id="complaint-form" style="display:none;">
+    <h2>Submit Your Complaint 💭</h2>
+    <textarea id="complaint" placeholder="What's bothering you?"></textarea><br/>
+    <button onclick="submitComplaint()">Submit 💌</button>
+  </div>
+
+  <script>
+    const tokenKey = 'jwt_token';
+
+    function spawnHeart() {
+      const heart = document.createElement("div");
+      heart.className = "heart";
+      heart.style.left = Math.random() * 100 + "vw";
+      document.body.appendChild(heart);
+      setTimeout(() => heart.remove(), 5000);
+    }
+
+    setInterval(spawnHeart, 300);
+
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      fetch("/login", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ username, password }),
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.token) {
+          localStorage.setItem(tokenKey, data.token);
+          document.getElementById("login").style.display = "none";
+          document.getElementById("complaint-form").style.display = "block";
+        } else {
+          alert("Login failed.");
+        }
+      });
+    }
+
+    function submitComplaint() {
+      const complaint = document.getElementById("complaint").value;
+      const token = localStorage.getItem(tokenKey);
+      fetch("/complaint", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ complaint }),
+      })
+      .then(res => res.text())
+      .then(msg => {
+        alert(msg);
+        document.getElementById("complaint").value = "";
+      });
+    }
+  </script>
+</body>
+</html>
